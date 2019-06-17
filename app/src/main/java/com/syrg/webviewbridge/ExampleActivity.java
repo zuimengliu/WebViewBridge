@@ -20,11 +20,13 @@ public class ExampleActivity extends AppCompatActivity {
         setContentView(R.layout.activity_example);
         final WVJBWebView webView= (WVJBWebView) findViewById(R.id.webview);
         Button jsRcvResponseTestBtn= (Button) findViewById(R.id.jsRcvResponseTestBtn);
+        //注册webview监听
         webView.registerHandler("androidToJs", new WVJBWebView.WVJBHandler() {
             @Override
             public void handler(Object data, WVJBWebView.WVJBResponseCallback callback) {
                 Toast.makeText(ExampleActivity.this,data.toString(),LENGTH_SHORT).show();
                 Log.d("wvjsblog",data.toString());
+                //监听到js调用android 对js进行回调
                 callback.onResult("android 回调");
             }
         });
@@ -32,6 +34,7 @@ public class ExampleActivity extends AppCompatActivity {
         jsRcvResponseTestBtn.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
+                //直接调用调用js
                 webView.callHandler("jsRcvResponseTest", "调用js", new WVJBWebView.WVJBResponseCallback() {
                     @Override
                     public void onResult(Object data) {
