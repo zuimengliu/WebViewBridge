@@ -1,0 +1,107 @@
+<!doctype html>
+<html>
+<head>
+    <meta name="viewport"
+          content="user-scalable=no, width=device-width, initial-scale=1.0, maximum-scale=1.0">
+    <style type='text/css'>
+		html { font-family:Helvetica; color:#222; }
+		h1 { color:steelblue; font-size:24px; margin-top:24px; }
+		button { margin:0 3px 10px; font-size:12px; }
+		.logLine { border-bottom:1px solid #ccc; padding:4px 2px; font-family:courier; font-size:11px; }
+
+    </style>
+</head>
+<style>
+    .btn {
+            text-align: center;
+            background: dodgerblue;
+            color: white;
+            padding: 10px;
+            margin: 20px;
+            font-size: 14px;
+            border-radius: 3px;
+            box-shadow: 4px 2px 10px #999;
+     }
+
+    .btn:active {
+        opacity: .7;
+        box-shadow: 4px 2px 10px #555;
+    }
+
+    #intro{
+      padding:16px;
+    }
+
+
+</style>
+<body>
+
+<h1>WebViewJavascriptBridge Demo</h1>
+<div class="btn" id="git-cat">Fire testJavaCallback</div>
+<div id='log'></div>
+<script>
+	window.onerror = function(err) {
+		log('window.onerror: ' + err)
+	}
+
+	function setupWebViewJavascriptBridge(callback) {
+		var bridge=window.WebViewJavascriptBridge||window.WKWebViewJavascriptBridge
+		if (bridge) { return callback(bridge); }
+		var callbacks=window.WVJBCallbacks||window.WKWVJBCallbacks
+		if (callbacks) { return callbacks.push(callback); }
+		window.WVJBCallbacks=window.WKWVJBCallbacks = [callback];
+		if(window.WKWebViewJavascriptBridge){
+		  window.webkit.messageHandlers.iOS_Native_InjectJavascript.postMessage(null)
+		}else{
+			var WVJBIframe = document.createElement('iframe');
+			WVJBIframe.style.display = 'none';
+			WVJBIframe.src = 'https://__bridge_loaded__';
+			document.documentElement.appendChild(WVJBIframe);
+			setTimeout(function() { document.documentElement.removeChild(WVJBIframe) }, 0)
+		}
+	}
+
+	function addClick(id,onResult){
+      document.getElementById(id).addEventListener("click",onResult);
+    }
+
+
+
+    setupWebViewJavascriptBridge(function(bridge) {
+		var uniqueId = 1
+		function log(message, data) {
+			var log = document.getElementById('log')
+			var el = document.createElement('div')
+			el.className = 'logLine'
+			el.innerHTML = uniqueId++ + '. ' + message + ':<br/>' + JSON.stringify(data)
+			if (log.children.length) { log.insertBefore(el, log.children[0]) }
+			else { log.appendChild(el) }
+		}
+
+		bridge.registerHandler('bridgeHandler', function(data, responseCallback) {
+			responseCallback(data)
+		})
+		bridge.registerHandler('jsRcvResponseTest', function(data, responseCallback) {
+			log('from android', data)
+			responseCallback("JS回调")
+		})
+
+
+		bridge.registerHandler('testJavascriptHandler', function(data, responseCallback) {
+			log('Java called testJavascriptHandler with', data)
+			var responseData = { 'Javascript Says':'Right back atcha!' }
+			log('JS responding with', responseData)
+			responseCallback(responseData)
+		})
+
+		addClick("git-cat",function(){
+            bridge.callHandler('androidToJs', {'foo': '调用 android'}, function(response) {
+                        log('JS got response', response)
+                    })
+        })
+	})
+
+</script>
+
+</body>
+</html>

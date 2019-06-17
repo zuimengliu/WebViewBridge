@@ -1,0 +1,10 @@
+
+/.gradle/
+/.idea/
+/app/build/
+/build/
+/local.properties
+/WebViewBridge.iml
+/webviewbridgelibrary/webviewbridgelibrary.iml
+/webviewbridgelibrary/build/
+/app/app.iml
